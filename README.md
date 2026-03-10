@@ -1,4 +1,6 @@
-# astrbot-plugin-helloworld
+# astrbot-plugin-random-meal
+
+_**这里现在什么都还没有开始写**_
 
 AstrBot 插件模板 / A template plugin for AstrBot plugin feature
 
