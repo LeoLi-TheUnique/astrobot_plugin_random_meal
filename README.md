@@ -2,6 +2,14 @@
 
 _**这里现在什么都还没有开始写**_
 
+准备做的事情：
+
+- [ ] 周四啃得集神秘文案
+- [ ] 根据时间来判断吃早餐还是别的什么餐
+- [ ] 群友添加参数来自定义菜
+- ...
+- [ ] 完善readme
+
 AstrBot 插件模板 / A template plugin for AstrBot plugin feature
 
 > [!NOTE]
