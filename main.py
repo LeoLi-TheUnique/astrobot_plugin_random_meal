@@ -85,24 +85,31 @@ class RandMeal(Star):
 
     # 注册指令的装饰器。指令名为 meal。注册成功后，发送 `/meal` 就会触发这个指令，并回复一个随机的吃什么建议。alias 参数可以设置指令的别名，用户发送别名也会触发这个指令。
     @filter.command("meal", alias={'吃什么', '吃什麽'})
-    async def random_meal(self, event: AstrMessageEvent):
+    async def random_meal(self, event: AstrMessageEvent, msg_arg: str=""):
         """这是一个 是啊，吃什么 指令""" # 这是 handler 的描述，将会被解析方便用户了解插件内容。建议填写。
         # user_name = event.get_sender_name()
         # message_str = event.message_str # 用户发的纯文本消息字符串
         message_chain = event.get_messages() # 用户所发的消息的消息链 # from astrbot.api.message_components import *
         logger.info(message_chain)
-        if nowtime.weekday() == 3 and random() < 0.4: # 疯狂星期四
-            i = randint(0, total_length-1)
-            if random() <= 0.5:
-                meal = meals[0]
-                sentense = choice(human_templates).format(meal)
+        if msg_arg == "菜单":
+            yield event.plain_result("菜单功能开发中！")
+        elif msg_arg == "":
+            if nowtime.weekday() == 3 and random() < 0.4: # 疯狂星期四 kfc概率0.4
+                i = randint(0, total_length-1)
+                if random() <= 0.5:
+                    meal = meals[0]
+                    sentense = choice(human_templates).format(meal)
+                else:
+                    sentense = choice(kfc_not_human)
             else:
-                sentense = choice(kfc_not_human)
+                meal = meals[randint(0,len(meals)-1)]
+                sentense = choice(human_templates).format(meal)
+            yield event.plain_result(sentense) # 发送一条纯文本消息
+            # yield event.plain_result(str(msg_arg=="")) # 发送一条纯文本消息
+        elif msg_arg == "帮助" or msg_arg == "help":
+            yield event.plain_result("功能一览\n输入 /meal 触发主功能\n输入 /meal 目录 查看正在开发的功能\n输入 /meal 帮助 查看帮助文档")
         else:
-            meal = meals[randint(0,len(meals)-1)]
-            sentense = choice(human_templates).format(meal)
-        yield event.plain_result(sentense) # 发送一条纯文本消息
-
+            yield event.plain_result("没有这个参数哦\n输入参数help可以查看帮助")
 
     @filter.command("fry", alias={'炒什么'})
     async def fry(self, event: AstrMessageEvent):
