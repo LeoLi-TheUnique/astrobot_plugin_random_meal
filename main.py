@@ -112,14 +112,17 @@ class RandMeal(Star):
             yield event.plain_result("没有这个参数哦\n输入参数help可以查看帮助")
 
     @filter.command("fry", alias={'炒什么'})
-    async def fry(self, event: AstrMessageEvent):
+    async def fry(self, event: AstrMessageEvent, n=1):
         """这是一个 是啊，炒什么 指令"""
         message_chain = event.get_messages()
         logger.info(message_chain)
+
         chain = [
             comp.Plain(f"炒{frys[randint(0,len(frys)-1)]}"),           # 炒xx \n [图片]
             comp.Image.fromFileSystem(f"C:\\Users\\leoli\\.astrbot\\data\\plugins\\astrobot_plugin_random_meal\\assets\\{img_path[randint(0, len(img_path)-1)]}")
         ]
+        for i in range(n-1):
+            chain.insert(0, comp.Plain(f"炒{frys[randint(0,len(frys)-1)]}"))
         yield event.chain_result(chain)
 
     # async def terminate(self):
