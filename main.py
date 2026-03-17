@@ -9,7 +9,7 @@ frys = ["香菇","菠菜","蒜苗","胡萝卜","空心菜","地瓜叶","花菜",
 example_foods = ["早饭", "中饭", "晚饭"]
 meals = ["KFC","麦当劳","馍馍","自选菜（比如老乡鸡）","火锅","麻辣烫","冒菜","钵钵鸡","沙县小吃","鸡公煲","牛肉饭","咖喱饭",
          "乌冬面","炒饭","炒米粉","炒面","盖浇饭","酸菜鱼","生煎包","卤肉饭","饺子","泡面(还是吃点健康的吧)",
-         "一饭一菜套餐","干锅","土豆粉","米粉","兰州拉面","披萨","肠粉","江西小炒","拌粉","炒饼","猪脚饭"
+         "一饭一菜套餐","干锅","土豆粉","米粉","兰州拉面","披萨","肠粉","江西小炒","拌粉","炒饼","猪脚饭","烧麦"
          ]
 human_templates = [
     # 今天尝尝 + 后缀
@@ -95,7 +95,6 @@ class RandMeal(Star):
             yield event.plain_result("菜单功能开发中！")
         elif msg_arg == "":
             if nowtime.weekday() == 3 and random() < 0.4: # 疯狂星期四 kfc概率0.4
-                i = randint(0, total_length-1)
                 if random() <= 0.5:
                     meal = meals[0]
                     sentense = choice(human_templates).format(meal)
@@ -107,22 +106,24 @@ class RandMeal(Star):
             yield event.plain_result(sentense) # 发送一条纯文本消息
             # yield event.plain_result(str(msg_arg=="")) # 发送一条纯文本消息
         elif msg_arg == "帮助" or msg_arg == "help":
-            yield event.plain_result("功能一览\n输入 /meal 触发主功能\n输入 /meal 目录 查看正在开发的功能\n输入 /meal 帮助 查看帮助文档")
+            yield event.plain_result("功能一览\n输入 /吃什么 触发主功能\n输入 /吃什么 菜单 查看正在开发的功能\n输入 /meal 帮助 查看帮助文档")
         else:
             yield event.plain_result("没有这个参数哦\n输入参数help可以查看帮助")
 
     @filter.command("fry", alias={'炒什么'})
-    async def fry(self, event: AstrMessageEvent, n=1):
+    async def fry(self, event: AstrMessageEvent, n="1"):
         """这是一个 是啊，炒什么 指令"""
         message_chain = event.get_messages()
         logger.info(message_chain)
-
+        if int(n) > 10:
+            yield event.plain_result("菜炒的太多会吃不完哦~\n建议炒10份以下的菜")
+            return
         chain = [
             comp.Plain(f"炒{frys[randint(0,len(frys)-1)]}"),           # 炒xx \n [图片]
             comp.Image.fromFileSystem(f"C:\\Users\\leoli\\.astrbot\\data\\plugins\\astrobot_plugin_random_meal\\assets\\{img_path[randint(0, len(img_path)-1)]}")
         ]
-        for i in range(n-1):
-            chain.insert(0, comp.Plain(f"炒{frys[randint(0,len(frys)-1)]}"))
+        for i in range(int(n)-1):
+            chain.insert(0, comp.Plain(f"炒{frys[randint(0,len(frys)-1)]}，"))
         yield event.chain_result(chain)
 
     # async def terminate(self):
