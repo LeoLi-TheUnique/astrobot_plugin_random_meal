@@ -2,15 +2,59 @@ from astrbot.api.event import filter, AstrMessageEvent, MessageEventResult
 from astrbot.api.star import Context, Star, register
 import astrbot.api.message_components as comp
 from astrbot.api import logger
-from random import randint, choice, random
+from random import randint, choice, random, sample
 from datetime import datetime
+import math
 
 frys = ["香菇","菠菜","蒜苗","胡萝卜","空心菜","地瓜叶","花菜","茄子","南瓜","鸡蛋(韭菜炒鸡蛋，西红柿炒鸡蛋)", "土豆丝", "四季豆"]
 example_foods = ["早饭", "中饭", "晚饭"]
+# 西式快餐
+meals_western_fastfood = ["KFC", "麦当劳", "披萨"]
+
+# 中式快餐/简餐
+meals_chinese_fastfood = [
+    "沙县小吃",
+    "自选菜（比如老乡鸡）",
+    "一饭一菜套餐",
+    "卤肉饭",
+    "猪脚饭",
+    "牛肉饭",
+    "咖喱饭",
+    "鸡公煲",
+    "酸菜鱼",
+    "盖浇饭"
+]
+
+# 粉面/主食类
+meals_main = [
+    "兰州拉面",
+    "乌冬面",
+    "炒面",
+    "炒米粉",
+    "米粉",
+    "土豆粉",
+    "拌粉",
+    "江西小炒",
+    "炒饭",
+    "炒饼"
+]
+
+# 小吃/点心类
+meals_snacks = ["生煎包", "饺子", "烧麦", "肠粉", "馍馍"]
+
+# 汤锅/麻辣类
+meals_spicy = ["火锅", "麻辣烫", "冒菜", "钵钵鸡", "干锅"]
+
+# 即食/速食
+meals_instant = ["泡面(还是吃点健康的吧)"]
+
+meals = meals_western_fastfood + meals_chinese_fastfood + meals_main + meals_snacks + meals_spicy + meals_instant
+'''
 meals = ["KFC","麦当劳","馍馍","自选菜（比如老乡鸡）","火锅","麻辣烫","冒菜","钵钵鸡","沙县小吃","鸡公煲","牛肉饭","咖喱饭",
          "乌冬面","炒饭","炒米粉","炒面","盖浇饭","酸菜鱼","生煎包","卤肉饭","饺子","泡面(还是吃点健康的吧)",
-         "一饭一菜套餐","干锅","土豆粉","米粉","兰州拉面","披萨","肠粉","江西小炒","拌粉","炒饼","猪脚饭","烧麦"
+         "一饭一菜套餐","干锅","土豆粉","米粉","兰州拉面","披萨","肠粉","江西小炒","拌粉","炒饼","猪脚饭"
          ]
+'''
 human_templates = [
     # 今天尝尝 + 后缀
     "今天尝尝{}吧",
@@ -115,16 +159,51 @@ class RandMeal(Star):
         """这是一个 是啊，炒什么 指令"""
         message_chain = event.get_messages()
         logger.info(message_chain)
+        try:
+            n = int(n)
+        except ValueError:
+            yield event.plain_result("请输入一个整数哦")
+            return
         if int(n) > 10:
             yield event.plain_result("菜炒的太多会吃不完哦~\n建议炒10份以下的菜")
             return
+        elif int(n) <= 0:
+            yield event.plain_result("你到底炒不炒😠")
+            return
+        wait_for_fry = sample(frys, k=int(n))
+        str = f"炒{wait_for_fry[0]}"
+        for fryed in wait_for_fry[1:]:
+            str += f"，炒{fryed}"
         chain = [
-            comp.Plain(f"炒{frys[randint(0,len(frys)-1)]}"),           # 炒xx \n [图片]
+            comp.Plain(str),           # 炒xx \n [图片]
             comp.Image.fromFileSystem(f"C:\\Users\\leoli\\.astrbot\\data\\plugins\\astrobot_plugin_random_meal\\assets\\{img_path[randint(0, len(img_path)-1)]}")
         ]
-        for i in range(int(n)-1):
-            chain.insert(0, comp.Plain(f"炒{frys[randint(0,len(frys)-1)]}，"))
         yield event.chain_result(chain)
+
+    @filter.command("choice", alias={'选什么'})
+    async def choice(self, event: AstrMessageEvent, option1: str, option2: str, n: int=1000):
+        """这是一个 是啊，选什么 指令"""
+        message_chain = event.get_messages()
+        logger.info(message_chain)
+        options = [option1, option2]
+        # if n > 10000000:
+        #     yield event.plain_result("根据大数定理，再往上增加次数会很大概率会出现五五开")
+        #     return
+        n1 = 0
+        n2 = 0
+
+        for i in range(n): 
+            choice_result = choice(options)
+            if choice_result == option1:
+                n1 += 1
+            elif choice_result == option2:
+                n2 += 1
+            else:
+                n3 += 1
+        result = f"{option1}\n{int((math.ceil(n1/n*100)-30)*1.34) * '·'}\n{n1/n*100:.4f}%\n\n{option2}\n{int((math.ceil(n2/n*100)-30)*1.34) * '·'}\n{n2/n*100:.4f}%\n\n共进行了{n}次选择"
+        
+        yield event.plain_result(f"{result}")
+
 
     # async def terminate(self):
     #     """可选择实现异步的插件销毁方法，当插件被卸载/停用时会调用。"""
