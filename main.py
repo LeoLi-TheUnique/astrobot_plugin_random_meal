@@ -49,12 +49,7 @@ meals_spicy = ["火锅", "麻辣烫", "冒菜", "钵钵鸡", "干锅"]
 meals_instant = ["泡面(还是吃点健康的吧)"]
 
 meals = meals_western_fastfood + meals_chinese_fastfood + meals_main + meals_snacks + meals_spicy + meals_instant
-'''
-meals = ["KFC","麦当劳","馍馍","自选菜（比如老乡鸡）","火锅","麻辣烫","冒菜","钵钵鸡","沙县小吃","鸡公煲","牛肉饭","咖喱饭",
-         "乌冬面","炒饭","炒米粉","炒面","盖浇饭","酸菜鱼","生煎包","卤肉饭","饺子","泡面(还是吃点健康的吧)",
-         "一饭一菜套餐","干锅","土豆粉","米粉","兰州拉面","披萨","肠粉","江西小炒","拌粉","炒饼","猪脚饭"
-         ]
-'''
+
 human_templates = [
     # 今天尝尝 + 后缀
     "今天尝尝{}吧",
@@ -118,6 +113,7 @@ kfc_length = len(kfc_not_human)
 total_length = human_length + kfc_length
 img_path = ["开始炒.jpg", "炒好了.jpg"]
 nowtime = datetime.now()
+qq_id = {}
 
 @register("meal", "spica", "一个简单的 是啊，吃什么 插件", "0.4.5")
 class RandMeal(Star):
@@ -186,9 +182,9 @@ class RandMeal(Star):
         message_chain = event.get_messages()
         logger.info(message_chain)
         options = [option1, option2]
-        # if n > 10000000:
-        #     yield event.plain_result("根据大数定理，再往上增加次数会很大概率会出现五五开")
-        #     return
+        if n > 10000000:
+            yield event.plain_result("根据大数定理，再往上增加次数会很大概率会出现50\\% 50\\%")
+            return
         n1 = 0
         n2 = 0
 
@@ -203,6 +199,25 @@ class RandMeal(Star):
         result = f"{option1}\n{int((math.ceil(n1/n*100)-30)*1.34) * '·'}\n{n1/n*100:.4f}%\n\n{option2}\n{int((math.ceil(n2/n*100)-30)*1.34) * '·'}\n{n2/n*100:.4f}%\n\n共进行了{n}次选择"
         
         yield event.plain_result(f"{result}")
+    
+    @filter.permission_type(filter.PermissionType.ADMIN)
+    @filter.command("test")
+    async def test(self, event: AstrMessageEvent):
+        """这是一个测试函数，未注册为指令，可以被插件内其他函数调用。"""
+        message_chain = event.get_messages()
+        logger.info(message_chain)
+        sender = event.message_obj.sender.user_id
+        group_id = event.message_obj.group_id
+        self_id = event.message_obj.self_id
+        session_id = event.message_obj.session_id
+        message_id = event.message_obj.message_id
+        if sender in qq_id:
+            qq_id[sender] += 1
+            yield event.plain_result(f"sender: {sender}\n你已经调用过这个测试函数了哦\n调用次数：{qq_id[sender]}\n\ngroup_id: {group_id}\nself_id: {self_id}\nsession_id: {session_id}\nmessage_id: {message_id}")
+        else:
+            qq_id.update({sender: 1})
+            yield event.plain_result(f"sender: {sender}\n这是你第一次调用这个测试函数哦\n调用次数：1\n\ngroup_id: {group_id}\nself_id: {self_id}\nsession_id: {session_id}\nmessage_id: {message_id}")
+        # yield event.plain_result(f"sender: {sender}\ngroup_id: {group_id}\nself_id: {self_id}\nsession_id: {session_id}\nmessage_id: {message_id}")
 
 
     # async def terminate(self):
