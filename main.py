@@ -2,10 +2,11 @@ from astrbot.api.event import filter, AstrMessageEvent, MessageEventResult
 from astrbot.api.star import Context, Star, register
 import astrbot.api.message_components as comp
 from astrbot.api import logger
-from random import randint, choice, random, sample
+from random import randint, choice, random, sample, shuffle, seed
 from datetime import datetime
 import math
 
+seed(datetime.now().timestamp())
 frys = ["香菇","菠菜","蒜苗","胡萝卜","空心菜","地瓜叶","花菜","茄子","南瓜","鸡蛋(韭菜炒鸡蛋，西红柿炒鸡蛋)", "土豆丝", "四季豆"]
 example_foods = ["早饭", "中饭", "晚饭"]
 # 西式快餐
@@ -48,71 +49,43 @@ meals_spicy = ["火锅", "麻辣烫", "冒菜", "钵钵鸡", "干锅"]
 # 即食/速食
 meals_instant = ["泡面(还是吃点健康的吧)"]
 
-meals = meals_western_fastfood + meals_chinese_fastfood + meals_main + meals_snacks + meals_spicy + meals_instant
+meals_orig = meals_western_fastfood + meals_chinese_fastfood + meals_main + meals_snacks + meals_spicy + meals_instant
+meals = meals_orig
 
 human_templates = [
     # 今天尝尝 + 后缀
-    "今天尝尝{}吧",
-    "今天尝尝{}怎么样？",
-    "今天尝尝{}？",
-    "今天尝尝{}！",
+    "今天尝尝{}吧", "今天尝尝{}怎么样？", "今天尝尝{}？", "今天尝尝{}！",
 
     # 这一顿试试 + 后缀
-    "这一顿试试{}吧",
-    "这一顿试试{}怎么样？",
-    "这一顿试试{}？",
-    "这一顿试试{}！",
+    "这一顿试试{}吧", "这一顿试试{}怎么样？",  "这一顿试试{}？", "这一顿试试{}！",
 
     # 试试 + 后缀
-    "试试{}吧",
-    "试试{}怎么样？",
-    "试试{}？",
-    "试试{}！",
+    "试试{}吧","试试{}怎么样？","试试{}？","试试{}！",
 
     # 了解一下 + 后缀
-    "了解一下{}吧",
-    "了解一下{}怎么样？",
-    "了解一下{}？",
-    "了解一下{}！",
+    "了解一下{}吧","了解一下{}怎么样？","了解一下{}？","了解一下{}！",
 
     # 吃点 + 后缀
-    "吃点{}吧",
-    "吃点{}怎么样？",
-    "吃点{}？",
-    "吃点{}！",
+    "吃点{}吧","吃点{}怎么样？","吃点{}？","吃点{}！",
 
     # 来点 + 后缀
-    "来点{}吧",
-    "来点{}怎么样？",
-    "来点{}？",
-    "来点{}！",
+    "来点{}吧","来点{}怎么样？","来点{}？","来点{}！",
 
     # 吃吃 + 后缀
-    "吃吃{}吧",
-    "吃吃{}怎么样？",
-    "吃吃{}？",
-    "吃吃{}！",
+    "吃吃{}吧","吃吃{}怎么样？","吃吃{}？","吃吃{}！",
 
     # 空前缀 + 所有后缀
-    "{}吧",
-    "{}怎么样？",
-    "{}？",
-    "{}尝尝",
-    "{}吃吃！",
-    "{}！",
+    "{}吧","{}怎么样？","{}？","{}尝尝","{}吃吃！","{}！",
 
     # 额外添加的常用表达
-    "不妨试试{}吧",
-    "不妨试试{}怎么样？",
-    "推荐你{}尝尝",
-    "一定要试{}！",
+    "不妨试试{}吧","不妨试试{}怎么样？","推荐你{}尝尝","一定要试{}！",
 ]
 kfc_not_human = ["友情提醒，今天是星期四", "KFC Crazy Thursday", ":(\n\n在调用插件的处理函数 meal 时出现异常：KFC Crazy Thursday need ￥50", "前面忘了，后面忘了，最后今天疯狂星期四"]
 human_length = len(human_templates)
 kfc_length = len(kfc_not_human)
 total_length = human_length + kfc_length
 img_path = ["开始炒.jpg", "炒好了.jpg"]
-nowtime = datetime.now()
+start_time = datetime.now()
 qq_id = {}
 
 @register("meal", "spica", "一个简单的 是啊，吃什么 插件", "0.4.5")
@@ -131,6 +104,7 @@ class RandMeal(Star):
         # message_str = event.message_str # 用户发的纯文本消息字符串
         message_chain = event.get_messages() # 用户所发的消息的消息链 # from astrbot.api.message_components import *
         logger.info(message_chain)
+        nowtime = datetime.now()
         if msg_arg == "菜单":
             yield event.plain_result("菜单功能开发中！")
         elif msg_arg == "":
@@ -146,7 +120,7 @@ class RandMeal(Star):
             yield event.plain_result(sentense) # 发送一条纯文本消息
             # yield event.plain_result(str(msg_arg=="")) # 发送一条纯文本消息
         elif msg_arg == "帮助" or msg_arg == "help":
-            yield event.plain_result("功能一览\n输入 /吃什么 触发主功能\n输入 /吃什么 菜单 查看正在开发的功能\n输入 /meal 帮助 查看帮助文档")
+            yield event.plain_result("功能一览\n输入 /吃什么 触发主功能\n输入 /吃什么 菜单 还没开发好的菜单\n输入 /吃什么 帮助 查看帮助文档")
         else:
             yield event.plain_result("没有这个参数哦\n输入参数help可以查看帮助")
 
@@ -202,8 +176,8 @@ class RandMeal(Star):
     
     @filter.permission_type(filter.PermissionType.ADMIN)
     @filter.command("test")
-    async def test(self, event: AstrMessageEvent):
-        """这是一个测试函数，未注册为指令，可以被插件内其他函数调用。"""
+    async def test(self, event: AstrMessageEvent, options: str=""):
+        """这是一个测试函数。"""
         message_chain = event.get_messages()
         logger.info(message_chain)
         sender = event.message_obj.sender.user_id
@@ -211,14 +185,35 @@ class RandMeal(Star):
         self_id = event.message_obj.self_id
         session_id = event.message_obj.session_id
         message_id = event.message_obj.message_id
-        if sender in qq_id:
-            qq_id[sender] += 1
-            yield event.plain_result(f"sender: {sender}\n你已经调用过这个测试函数了哦\n调用次数：{qq_id[sender]}\n\ngroup_id: {group_id}\nself_id: {self_id}\nsession_id: {session_id}\nmessage_id: {message_id}")
+        nowtime = datetime.now()
+        if options == "all":
+            yield event.plain_result(f"以下是启动后所有QQID与交互次数的列表：\n{qq_id}")
         else:
-            qq_id.update({sender: 1})
-            yield event.plain_result(f"sender: {sender}\n这是你第一次调用这个测试函数哦\n调用次数：1\n\ngroup_id: {group_id}\nself_id: {self_id}\nsession_id: {session_id}\nmessage_id: {message_id}")
-        # yield event.plain_result(f"sender: {sender}\ngroup_id: {group_id}\nself_id: {self_id}\nsession_id: {session_id}\nmessage_id: {message_id}")
+            if sender in qq_id:
+                qq_id[sender] += 1
+                index = qq_id[sender] - 1
+                if index >= len(meals):
+                    yield event.plain_result("还决定不下来？出门右手边能吃的第二家请")
+                    return
+                random_seed = sender + nowtime.strftime("%Y%m%d") + nowtime.strftime("%H") # 同一个人在同一天同一小时调用测试函数，随机数相同，保证每个人每小时的结果不变
+                seed(random_seed) # 同一个人在同一天调用测试函数，随机数相同，保证每个人每天的结果不变
+                shuffle(meals) # 打乱列表顺序，保证每次调用结果不同
+                yield event.plain_result(f"发送人:{sender}\n席德:{random_seed}\n当前序列:{index}/{len(meals)}\n{meals[index]}") # 发送一条纯文本消息
+                # yield event.plain_result(f"{meals[qq_id[sender]-1]}")
+                # yield event.plain_result(f"sender: {sender}\n你已经调用过这个测试函数了哦\n调用次数：{qq_id[sender]}\n\ngroup_id: {group_id}\nself_id: {self_id}\nsession_id: {session_id}\nmessage_id: {message_id}")
+            else:
+                qq_id.update({sender: 1})
+                random_seed = sender + nowtime.strftime("%Y%m%d") + nowtime.strftime("%H") # 同一个人在同一天同一小时调用测试函数，随机数相同，保证每个人每小时的结果不变
+                seed(random_seed) # 同一个人在同一天调用测试函数，随机数相同，保证每个人每天的结果不变
+                shuffle(meals) # 打乱列表顺序，保证每次调用结果不同
+                # yield event.plain_result(f"{meals[0]}")
+                yield event.plain_result(f"发送人:{sender}\n席德:{random_seed}\n当前序列:0/{len(meals)}\n{meals[0]}") # 发送一条纯文本消息
+                # yield event.plain_result(f"sender: {sender}\n这是你今天第一次调用这个测试函数哦\n调用次数：1\n\ngroup_id: {group_id}\nself_id: {self_id}\nsession_id: {session_id}\nmessage_id: {message_id}")
+            # yield event.plain_result(f"sender: {sender}\ngroup_id: {group_id}\nself_id: {self_id}\nsession_id: {session_id}\nmessage_id: {message_id}")
 
 
-    # async def terminate(self):
-    #     """可选择实现异步的插件销毁方法，当插件被卸载/停用时会调用。"""
+    async def terminate(self):
+        """可选择实现异步的插件销毁方法，当插件被卸载/停用时会调用。"""
+        nowtime = datetime.now()
+        with open(f"C:\\Users\\leoli\\.astrbot\\data\\plugins\\astrobot_plugin_random_meal\\qq_id.txt", "a") as f:
+            f.write(f"{start_time.strftime('%Y-%m-%d %H:%M:%S')} ~ {nowtime.strftime('%Y-%m-%d %H:%M:%S')} {str(qq_id)}\n")
